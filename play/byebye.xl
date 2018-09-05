@@ -1,0 +1,17 @@
+(* usage:
+ to play with xiaolinguist
+ make a script file as the following
+ * ------------- file begin -------------
+ #!/bin/bash
+ export xiaolinguist_play_directory=/home/xyh/xiaolinguist/play
+ cat ${xiaolinguist_play_directory}/xiaolinguist.xl - ${xiaolinguist_play_directory}/byebye.xl | ${xiaolinguist_play_directory}/xiaolinguist
+ * ------------- file end -------------
+ *)
+
+'b' writeChar
+'y' writeChar
+'e' writeChar
+
+'b' writeChar
+'y' writeChar
+'e' writeChar

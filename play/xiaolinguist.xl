@@ -1,0 +1,2120 @@
+(* to create a new word is to use some words to describe the new word,
+ * and let an explainer to explain the description of the new word.
+ * to define a new we just need to add the new created word to the dictionary.
+ *)
+
+: defineVar (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeader
+    VarExplainer appendNumberToHere
+    xx|swap|x twoDrop (* drop zero-length wordlist *)
+    swap (* leave wordHeader *)
+    appendNumberToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+
+: defineConst (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeader
+    ConstExplainer appendNumberToHere
+    xx|swap|x twoDrop (* drop zero-length wordlist *)
+    swap (* leave wordHeader *)
+    appendNumberToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+10  : 'linefeed' ; defineConst
+10  : 'newline'  ; defineConst
+27  : 'escape'   ; defineConst
+32  : 'space'    ; defineConst
+127 : 'delete'   ; defineConst
+
+33 : '!' ; defineConst
+34 : '"' ; defineConst
+35 : '#' ; defineConst
+36 : '$' ; defineConst
+37 : '%' ; defineConst
+38 : '&' ; defineConst
+39 : ''' ; defineConst
+40 : '(' ; defineConst
+41 : ')' ; defineConst
+42 : '*' ; defineConst
+43 : '+' ; defineConst
+44 : ',' ; defineConst
+45 : '-' ; defineConst
+46 : '.' ; defineConst
+47 : '/' ; defineConst
+    
+48 : '0' ; defineConst
+49 : '1' ; defineConst
+50 : '2' ; defineConst
+51 : '3' ; defineConst
+52 : '4' ; defineConst
+53 : '5' ; defineConst
+54 : '6' ; defineConst
+55 : '7' ; defineConst
+56 : '8' ; defineConst
+57 : '9' ; defineConst
+    
+58 : ':' ; defineConst
+59 : ';' ; defineConst
+60 : '<' ; defineConst
+61 : '=' ; defineConst
+62 : '>' ; defineConst
+63 : '?' ; defineConst
+64 : '@' ; defineConst
+    
+65 : 'A' ; defineConst
+66 : 'B' ; defineConst
+67 : 'C' ; defineConst
+68 : 'D' ; defineConst
+69 : 'E' ; defineConst
+70 : 'F' ; defineConst
+71 : 'G' ; defineConst
+72 : 'H' ; defineConst
+73 : 'I' ; defineConst
+74 : 'J' ; defineConst
+75 : 'K' ; defineConst
+76 : 'L' ; defineConst
+77 : 'M' ; defineConst
+78 : 'N' ; defineConst
+79 : 'O' ; defineConst
+80 : 'P' ; defineConst
+81 : 'Q' ; defineConst
+82 : 'R' ; defineConst
+83 : 'S' ; defineConst
+84 : 'T' ; defineConst
+85 : 'U' ; defineConst
+86 : 'V' ; defineConst
+87 : 'W' ; defineConst
+88 : 'X' ; defineConst
+89 : 'Y' ; defineConst
+90 : 'Z' ; defineConst
+    
+91 : '[' ; defineConst
+92 : '\' ; defineConst
+93 : ']' ; defineConst
+94 : '^' ; defineConst
+95 : '_' ; defineConst
+96 : '`' ; defineConst
+    
+97  : 'a' ; defineConst
+98  : 'b' ; defineConst
+99  : 'c' ; defineConst
+100 : 'd' ; defineConst
+101 : 'e' ; defineConst
+102 : 'f' ; defineConst
+103 : 'g' ; defineConst
+104 : 'h' ; defineConst
+105 : 'i' ; defineConst
+106 : 'j' ; defineConst
+107 : 'k' ; defineConst
+108 : 'l' ; defineConst
+109 : 'm' ; defineConst
+110 : 'n' ; defineConst
+111 : 'o' ; defineConst
+112 : 'p' ; defineConst
+113 : 'q' ; defineConst
+114 : 'r' ; defineConst
+115 : 's' ; defineConst
+116 : 't' ; defineConst
+117 : 'u' ; defineConst
+118 : 'v' ; defineConst
+119 : 'w' ; defineConst
+120 : 'x' ; defineConst
+121 : 'y' ; defineConst
+122 : 'z' ; defineConst
+    
+123 : '{' ; defineConst
+124 : '|' ; defineConst
+125 : '}' ; defineConst
+126 : '~' ; defineConst
+0 : Syscall,read  ; defineConst
+1 : Syscall,write ; defineConst
+2 : Syscall,open  ; defineConst
+3 : Syscall,close ; defineConst
+
+1 : Syscall,write,StandardOutput ; defineConst
+(* ><><>< 对下面的函数来说 如果string的长度是0
+ * 那么就应该报错 但是 在这里 我放弃这个报错的机会
+ *)
+: headOfString (* string[address, length] -- first char *)
+    drop fetchByte
+    Exit
+; defineFunction
+
+: tailOfString (* string[address, length] -- string[address + 1, length - 1] *)
+    sub1 swap add1 swap
+    Exit
+; defineFunction
+
+: tailAndHeadOfString
+  (* string[address, length] --
+     string[address + 1, length - 1], first char *)
+    twoDuplicate tailOfString xx|swap|xx headOfString
+    Exit
+; defineFunction
+
+: printString (* string[address, length] -- *)
+   Syscall,write
+   Syscall,write,StandardOutput
+   xx|swap|xx
+   syscallWithThreeArguments
+   drop (* length is returned by this syscall *)
+   Exit
+; defineFunction
+
+
+: :" (* -- string[address of BufferForReadStringInToBuffer, length] *)
+    readStringInToBuffer
+    Exit
+; defineFunction
+
+: ." (* -- string[address of BufferForReadStringInToBuffer, length] *)
+    readStringInToBuffer printString
+    Exit
+; defineFunction
+
+: defineConstString
+  (* string[address, length],
+     wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeader
+    ConstStringExplainer appendNumberToHere
+    xx|swap|x twoDrop (* drop zero-length wordlist *)
+    xx|swap|x (* leave wordHeader *)
+    appendStringToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+:" [2J"
+: TerminalSequence,clearScreen ; defineConstString
+: terminal,clearScreen (* -- *)
+    'escape' writeChar
+    TerminalSequence,clearScreen printString
+    Exit
+; defineFunction
+
+
+:" [12;25H"
+: TerminalSequence,moveCursor ; defineConstString
+: terminal,moveCursor (* -- *)
+    'escape' writeChar
+    TerminalSequence,moveCursor printString
+    Exit
+; defineFunction
+
+
+:" [31m"
+: TerminalSequence,red ; defineConstString
+: terminal,red (* -- *)
+    'escape' writeChar
+    TerminalSequence,red printString
+    Exit
+; defineFunction
+
+:" [1;31m"
+: TerminalSequence,bold,red ; defineConstString
+: terminal,bold,red (* -- *)
+    'escape' writeChar
+    TerminalSequence,bold,red printString
+    Exit
+; defineFunction
+
+:" [1;35m"
+: TerminalSequence,bold,magenta ; defineConstString
+: terminal,bold,magenta (* -- *)
+    'escape' writeChar
+    TerminalSequence,bold,magenta printString
+    Exit
+; defineFunction
+
+
+:" [36m"
+: TerminalSequence,cyan ; defineConstString
+: terminal,cyan (* -- *)
+    'escape' writeChar
+    TerminalSequence,cyan printString
+    Exit
+; defineFunction
+
+:" [49m"
+: TerminalSequence,default,background ; defineConstString
+: terminal,default,background (* -- *)
+    'escape' writeChar
+    TerminalSequence,default,background printString
+    Exit
+; defineFunction
+
+
+
+
+:" [5m"
+: TerminalSequence,blinkOn ; defineConstString
+: terminal,blinkOn (* -- *)
+    'escape' writeChar
+    TerminalSequence,blinkOn printString
+    Exit
+; defineFunction
+
+
+:" [25m"
+: TerminalSequence,blinkOff ; defineConstString
+: terminal,blinkOff (* -- *)
+    'escape' writeChar
+    TerminalSequence,blinkOff printString
+    Exit
+; defineFunction
+
+
+:" [4m"
+: TerminalSequence,underlineOn ; defineConstString
+: terminal,underlineOn (* -- *)
+    'escape' writeChar
+    TerminalSequence,underlineOn printString
+    Exit
+; defineFunction
+
+
+:" [24m"
+: TerminalSequence,underlineOff ; defineConstString
+: terminal,underlineOff (* -- *)
+    'escape' writeChar
+    TerminalSequence,underlineOff printString
+    Exit
+; defineFunction
+
+
+:" linux programming is stupid"
+: TerminalSequence,linux-programming-is-stupid ; defineConstString
+: terminal,say,linux-programming-is-stupid (* -- *)
+    terminal,clearScreen
+    terminal,moveCursor
+    (* terminal,red *)
+    terminal,blinkOn
+    terminal,underlineOn
+    TerminalSequence,linux-programming-is-stupid printString
+    terminal,underlineOff
+    terminal,blinkOff
+    Exit
+; defineFunction
+: defineRecursiveFunction (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    addNewWordToDictionary
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHere
+    Exit
+; defineFunction
+
+:" if"   
+: String,KeyWord,if ; defineConstString
+
+:" then" 
+: String,KeyWord,then ; defineConstString
+
+: appendWordDescriptionToHereWith:if&then
+  (* wordList[address, the number of words] -- *)
+    duplicate zero? false?branch 3
+      twoDrop Exit
+
+    tailAndHeadOfWordList
+
+    twoDuplicate String,KeyWord,if equalString? false?branch 12
+      twoDrop
+      literal false?branch appendNumberToHere
+      Here fetch xx|swap|x
+      duplicate appendNumberToHere
+      appendWordDescriptionToHereWith:if&then Exit
+
+    twoDuplicate String,KeyWord,then equalString? false?branch 8
+      twoDrop
+      x|swap|xx over swap subSave
+      appendWordDescriptionToHereWith:if&then Exit
+
+    twoDuplicate stringDenoteNumber? false?branch 6
+      number drop appendNumberToHere
+      appendWordDescriptionToHereWith:if&then Exit
+
+      find wordLinkToWordExplainer appendNumberToHere
+      appendWordDescriptionToHereWith:if&then Exit
+; defineRecursiveFunction
+
+: defineRecursiveFunctionWith:if&then
+  (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    addNewWordToDictionary
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHereWith:if&then
+    Exit
+; defineFunction
+
+
+(* redefine appendWordDescriptionToHere as test *)
+
+: appendWordDescriptionToHere
+  (* wordList[address, the number of words] -- *)
+    duplicate zero? if
+      twoDrop Exit
+    then
+    tailAndHeadOfWordList
+    twoDuplicate String,KeyWord,if equalString? if
+      twoDrop
+      literal false?branch appendNumberToHere
+      Here fetch xx|swap|x
+      duplicate appendNumberToHere
+      appendWordDescriptionToHere Exit
+    then
+    twoDuplicate String,KeyWord,then equalString? if
+      twoDrop
+      x|swap|xx over swap subSave
+      appendWordDescriptionToHere Exit
+    then
+    twoDuplicate stringDenoteNumber? if
+      number drop appendNumberToHere
+      appendWordDescriptionToHere Exit
+    then
+      find wordLinkToWordExplainer appendNumberToHere
+      appendWordDescriptionToHere Exit
+; defineRecursiveFunctionWith:if&then
+
+
+(* redefine defineRecursiveFunction & defineFunction *)
+
+: defineFunction
+  (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    xx|swap|x
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+
+: defineRecursiveFunction
+  (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    addNewWordToDictionary
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHere
+    Exit
+; defineFunction
+: specialKeyWord? (* word[explainer] -- True or False *)
+    duplicate literal literal          == if drop True Exit then
+    duplicate literal branch           == if drop True Exit then
+    duplicate literal zero?branch      == if drop True Exit then
+    duplicate literal false?branch     == if drop True Exit then
+    duplicate literal notFalse?branch  == if drop True Exit then
+    drop False
+    Exit
+; defineFunction
+: /mod (* a, b -- quotient, a mod b *)
+    mod/ swap
+    Exit
+; defineFunction
+
+: / (* a, b -- a mod b *)
+    /mod drop
+    Exit
+; defineFunction
+
+: mod (* a, b -- a mod b *)
+    mod/ drop
+    Exit
+; defineFunction
+
+: negate (* n --  -n *)
+    Zero swap -
+    Exit
+; defineFunction
+
+: writeDecNumberChar (* byte -- *)
+    '0' + writeChar
+    Exit
+; defineFunction
+
+: help,writeDecNumber,pushChars
+  (* ... , number of small DecNumbers, fixnum --
+    ... , number of small DecNumbers *)
+    DecBase mod/
+    duplicate zero? if
+      drop swap add1 Exit
+    then
+    xx|swap|x xx|swap|x add1 swap
+    help,writeDecNumber,pushChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeDecNumber,writeChars
+  (* ... , number of small DecNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeDecNumberChar
+    help,writeDecNumber,writeChars
+    Exit
+; defineRecursiveFunction
+
+: writeDecNumber (* fixnum -- *)
+    Zero swap
+    help,writeDecNumber,pushChars
+    help,writeDecNumber,writeChars
+    Exit
+; defineFunction
+
+: writeDecNumber,signed (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeDecNumber
+    Exit
+; defineFunction
+: writeBinNumberChar (* byte -- *)
+    '0' + writeChar
+    Exit
+; defineFunction
+
+: help,writeBinNumber,pushChars
+  (* ... , number of small BinNumbers, fixnum --
+    ... , number of small BinNumbers *)
+    BinBase mod/
+    duplicate zero? if
+      drop swap add1 Exit
+    then
+    xx|swap|x xx|swap|x add1 swap
+    help,writeBinNumber,pushChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeBinNumber,writeChars
+  (* ... , number of small BinNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeBinNumberChar
+    help,writeBinNumber,writeChars
+    Exit
+; defineRecursiveFunction
+
+: writeBinNumber (* fixnum -- *)
+    Zero swap
+    help,writeBinNumber,pushChars
+    help,writeBinNumber,writeChars
+    Exit
+; defineFunction
+
+: writeBinNumber,signed (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeBinNumber
+    Exit
+; defineFunction
+: writeOctNumberChar (* byte -- *)
+    '0' + writeChar
+    Exit
+; defineFunction
+
+: help,writeOctNumber,pushChars
+  (* ... , number of small OctNumbers, fixnum --
+    ... , number of small OctNumbers *)
+    OctBase mod/
+    duplicate zero? if
+      drop swap add1 Exit
+    then
+    xx|swap|x xx|swap|x add1 swap
+    help,writeOctNumber,pushChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeOctNumber,writeChars
+  (* ... , number of small OctNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeOctNumberChar
+    help,writeOctNumber,writeChars
+    Exit
+; defineRecursiveFunction
+
+: writeOctNumber (* fixnum -- *)
+    Zero swap
+    help,writeOctNumber,pushChars
+    help,writeOctNumber,writeChars
+    Exit
+; defineFunction
+
+: writeOctNumber,signed (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeOctNumber
+    Exit
+; defineFunction
+: writeHexNumberChar (* byte -- *)
+    duplicate Ten < if
+      '0' + writeChar Exit
+    then
+    Ten -
+    'a' + writeChar
+    Exit
+; defineFunction
+
+: writeHexNumberChar,capital (* byte -- *)
+    duplicate Ten < if
+      '0' + writeChar Exit
+    then
+    Ten -
+    'A' + writeChar
+    Exit
+; defineFunction
+
+: help,writeHexNumber,pushChars
+  (* ... , number of small HexNumbers, fixnum --
+    ... , number of small HexNumbers *)
+    HexBase mod/
+    duplicate zero? if
+      drop swap add1 Exit
+    then
+    xx|swap|x xx|swap|x add1 swap
+    help,writeHexNumber,pushChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeHexNumber,writeChars
+  (* ... , number of small HexNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeHexNumberChar
+    help,writeHexNumber,writeChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeHexNumber,writeChars,capital
+  (* ... , number of small HexNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeHexNumberChar,capital
+    help,writeHexNumber,writeChars,capital
+    Exit
+; defineRecursiveFunction
+
+: writeHexNumber (* fixnum -- *)
+    Zero swap
+    help,writeHexNumber,pushChars
+    help,writeHexNumber,writeChars
+    Exit
+; defineFunction
+
+: writeHexNumber,capital (* fixnum -- *)
+    Zero swap
+    help,writeHexNumber,pushChars
+    help,writeHexNumber,writeChars,capital
+    Exit
+; defineFunction
+
+: writeHexNumber,signed (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeHexNumber
+    Exit
+; defineFunction
+
+: writeHexNumber,signed,capital (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeHexNumber,capital
+    Exit
+; defineFunction
+: writeAphNumberChar (* byte -- *)
+    duplicate Ten < if
+      '0' + writeChar Exit
+    then
+    Ten -
+    'a' + writeChar
+    Exit
+; defineFunction
+
+: writeAphNumberChar,capital (* byte -- *)
+    duplicate Ten < if
+      '0' + writeChar Exit
+    then
+    Ten -
+    'A' + writeChar
+    Exit
+; defineFunction
+
+: help,writeAphNumber,pushChars
+  (* ... , number of small AphNumbers, fixnum --
+    ... , number of small AphNumbers *)
+    AphBase mod/
+    duplicate zero? if
+      drop swap add1 Exit
+    then
+    xx|swap|x xx|swap|x add1 swap
+    help,writeAphNumber,pushChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeAphNumber,writeChars
+  (* ... , number of small AphNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeAphNumberChar
+    help,writeAphNumber,writeChars
+    Exit
+; defineRecursiveFunction
+
+: help,writeAphNumber,writeChars,capital
+  (* ... , number of small AphNumbers -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1 swap writeAphNumberChar,capital
+    help,writeAphNumber,writeChars,capital
+    Exit
+; defineRecursiveFunction
+
+: writeAphNumber (* fixnum -- *)
+    Zero swap
+    help,writeAphNumber,pushChars
+    help,writeAphNumber,writeChars
+    Exit
+; defineFunction
+
+: writeAphNumber,capital (* fixnum -- *)
+    Zero swap
+    help,writeAphNumber,pushChars
+    help,writeAphNumber,writeChars,capital
+    Exit
+; defineFunction
+
+: writeAphNumber,signed (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeAphNumber
+    Exit
+; defineFunction
+
+: writeAphNumber,signed,capital (* fixnum -- *)
+    duplicate Zero < if
+      '-' writeChar
+      negate
+    then
+    writeAphNumber,capital
+    Exit
+; defineFunction
+: . (* fixnum -- *)
+    writeDecNumber
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .signed (* fixnum -- *)
+    writeDecNumber,signed
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .bin (* fixnum -- *)
+    writeBinNumber
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .bin,signed (* fixnum -- *)
+    writeBinNumber,signed
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .oct (* fixnum -- *)
+    writeOctNumber
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .oct,signed (* fixnum -- *)
+    writeOctNumber,signed
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .hex (* fixnum -- *)
+    writeHexNumber
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .hex,signed (* fixnum -- *)
+    writeHexNumber,signed
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .hex,capital (* fixnum -- *)
+    writeHexNumber,capital
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .hex,signed,capital (* fixnum -- *)
+    writeHexNumber,signed,capital
+    'space' writeChar
+    Exit
+; defineFunction
+
+
+: .aph (* fixnum -- *)
+    writeAphNumber
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .aph,signed (* fixnum -- *)
+    writeAphNumber,signed
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .aph,capital (* fixnum -- *)
+    writeAphNumber,capital
+    'space' writeChar
+    Exit
+; defineFunction
+
+: .aph,signed,capital (* fixnum -- *)
+    writeAphNumber,signed,capital
+    'space' writeChar
+    Exit
+; defineFunction
+
+: cr (* -- *)
+    'newline' writeChar
+    Exit
+;  defineFunction
+
+
+: writeSpace (* -- *)
+  'space' writeChar Exit
+; defineFunction
+
+: writeSomeSpace (* n -- *)
+    duplicate zero? if
+      drop Exit
+    then
+    sub1
+    writeSpace
+    writeSomeSpace
+    Exit
+; defineRecursiveFunction
+: countReturnStack (* -- the length of ReturnStack *)
+    ReturnStackTop fetchReturnStackPointer -
+    Eight /
+    sub1 (* for we are in this function call *)
+    Exit
+; defineFunction
+
+: countArgumtStack (* -- the length of ArgumtStack *)
+    ArgumtStackTop fetchArgumtStackPointer -
+    Eight /
+    Exit
+; defineFunction
+
+
+0 : ReturnStackPosition ; defineVar
+0 : ArgumtStackPosition ; defineVar
+
+(* the following two function are as interface *)
+: debuger,fetchFromReturnStack (* n -- *)
+    sub1 Eight *
+    ReturnStackPosition fetch +
+    fetch
+    Exit
+; defineFunction
+
+: debuger,fetchFromArgumtStack (* n -- *)
+    sub1 Eight *
+    ArgumtStackPosition fetch +
+    fetch
+    Exit
+; defineFunction
+
+
+:" bye,debuger"
+: "bye,debuger" ; defineConstString
+
+: debugerREPL (* unknown -- unknown *)
+    readWordForRuntime
+    twoDuplicate
+    stringDenoteNumber? if
+      number drop
+      debugerREPL
+      Exit
+    then
+    twoDuplicate
+    "bye,debuger" equalString? if
+      twoDrop
+      Exit
+    then
+    find duplicate notZero? if
+      wordLinkToWordExplainer execute
+      debugerREPL
+      Exit
+    then
+    drop
+    errorOfReadAndExeute
+    debugerREPL
+    Exit
+; defineRecursiveFunction
+
+:" debuger said: ``Welcome! Hope you find what's wrong.''"
+: String,debuger,Welcome ; defineConstString
+
+:" the length of ReturnStack is: "
+: String,debuger,theLengthOfReturnStack ; defineConstString
+
+:" the length of ArgumtStack is: "
+: String,debuger,theLengthOfArgumtStack ; defineConstString
+
+:" debuger said: ``Good bye! The computation will go on!''"
+: String,debuger,Goodbye ; defineConstString
+
+: debuger (* unknown -- unknown *)
+   String,debuger,Welcome printString cr
+   Three writeSomeSpace String,debuger,theLengthOfReturnStack printString
+     countReturnStack writeDecNumber cr
+   Three writeSomeSpace String,debuger,theLengthOfArgumtStack printString
+     countArgumtStack writeDecNumber cr
+   fetchReturnStackPointer ReturnStackPosition save
+   fetchArgumtStackPointer ArgumtStackPosition save
+   debugerREPL
+   String,debuger,Goodbye printString cr
+   Exit
+; defineFunction
+
+(* ><><>< bug ><><>< *)
+(* ``1 fetch'' will cause core dump *)
+: identificationOfWord? (* an address in a word -- *)
+    duplicate fetch ==
+    Exit
+; defineFunction
+
+(* ||  1 : name-string-header-which-contains-the-length-of-name-string  ||
+ * || m(bytes) : name-string  ||
+ * ||  1 : size of function body  ||
+ * ||  1 : identification  ||
+ * ||  1 : link  ||
+ * ||  1 : type  ||
+ * ||  1 : address-of-name-string-header  ||
+ * ||  1 : address-of-explainer  ||
+ * ||  n : body  ||
+ *)
+
+: word,body->id
+  (* [an address of a cell in a word] -- word[identification] *)
+    duplicate
+    identificationOfWord? if
+      Exit
+    then
+    CellWidth -
+    word,body->id
+    Exit
+; defineRecursiveFunction
+
+: word,id->name
+  (* word[identification] -- string[address, length] *)
+    CellWidth Three * +
+    fetch duplicate
+    add8 swap
+    fetch
+    Exit
+; defineFunction
+
+: word,id->explainer
+  (* word[identification] -- explainer *)
+    CellWidth Four * +
+    fetch
+    Exit
+; defineFunction
+
+: word,id->body-size
+  (* word[identification] -- body-size *)
+    CellWidth -
+    fetch
+    Exit
+; defineFunction
+
+: word,id->body-list
+  (* word[identification] -- body-list[address, length] *)
+    duplicate
+      CellWidth Five * +
+    swap
+    word,id->body-size
+    Exit
+; defineFunction
+
+: printNameOfExplainer (* explainer -- *)
+    duplicate FunctionBodyExplainer == if
+      literal FunctionBodyExplainer
+      word,body->id
+      word,id->name
+      printString
+      drop Exit
+    then
+    duplicate VarExplainer == if
+      literal VarExplainer
+      word,body->id
+      word,id->name
+      printString
+      drop Exit
+    then
+    duplicate ConstExplainer == if
+      literal ConstExplainer
+      word,body->id
+      word,id->name
+      printString
+      drop Exit
+    then
+    duplicate ConstStringExplainer == if
+      literal ConstStringExplainer
+      word,body->id
+      word,id->name
+      printString
+      drop Exit
+    then
+    drop
+    Exit
+; defineFunction
+
+: printFunctionBodyList (* body-list[address, length] -- *)
+    duplicate zero? if
+      twoDrop Exit
+    then
+    Six writeSomeSpace
+    over fetch word,body->id word,id->name printString cr
+    sub1 swap
+    CellWidth + swap
+    printFunctionBodyList
+    Exit
+; defineRecursiveFunction
+
+:"  -->  "
+: String,withPointer,printFunctionBodyList ; defineConstString
+
+(* the following function is the first function
+   on which I must use ``if,else,then'' *)
+: withPointer,printFunctionBodyList
+  (* [an address of a cell in a word], body-list[address, length] -- *)
+  duplicate zero? if
+    twoDrop drop Exit
+  then
+  x|over|xx x|over|xx == false?branch 5
+    String,withPointer,printFunctionBodyList printString
+    branch 3
+    Six writeSomeSpace
+  over
+  duplicate fetch specialKeyWord? if
+    fetch word,body->id word,id->name printString cr
+    sub2 swap
+    duplicate
+    Six writeSomeSpace
+    CellWidth + fetch writeDecNumber cr
+    CellWidth Two * + swap
+    withPointer,printFunctionBodyList
+    Exit
+  then
+  fetch word,body->id word,id->name printString cr
+  sub1 swap
+  CellWidth + swap
+  withPointer,printFunctionBodyList
+  Exit
+; defineRecursiveFunction
+
+
+:" traceFunction said: ``Ya! Let's trace a function!''"
+: String,traceFunction,Welcome ; defineConstString
+
+:" The function we use to trace is:"
+: String,traceFunction,FunctionToTrace ; defineConstString
+
+:" The function be traced to is:"
+: String,traceFunction,FunctionBeTracedTo ; defineConstString
+
+:" The size of the body of this function is:"
+: String,traceFunction,FunctionBodySize ; defineConstString
+
+:" The body of this function is:"
+: String,traceFunction,FunctionBody ; defineConstString
+
+:" traceFunction said: ``The end of a tracing.''"
+: String,traceFunction,Goodbye ; defineConstString
+
+: traceFunction
+  (* [an address of a cell in a word] -- *)
+  String,traceFunction,Welcome printString cr
+  duplicate
+    Three writeSomeSpace String,traceFunction,FunctionToTrace printString cr
+    Six writeSomeSpace fetch word,body->id word,id->name printString cr
+  duplicate (* withPointer,printFunctionBodyList still uses original arg *)
+  word,body->id
+    duplicate
+      Three writeSomeSpace String,traceFunction,FunctionBeTracedTo printString cr
+      Six writeSomeSpace word,id->name printString cr
+    duplicate
+      Three writeSomeSpace String,traceFunction,FunctionBodySize printString cr
+      Six writeSomeSpace word,id->body-size writeDecNumber cr
+    Three writeSomeSpace String,traceFunction,FunctionBody printString cr
+    word,id->body-list withPointer,printFunctionBodyList
+  String,traceFunction,Goodbye printString cr
+  Exit
+; defineFunction
+: printWordList (* WordList[address, the number of words] -- *)    
+  duplicate zero? if
+    twoDrop
+    cr Exit
+  then
+  Three writeSomeSpace
+  tailAndHeadOfWordList printString cr  
+  printWordList
+  Exit  
+; defineRecursiveFunction
+
+
+:" an error occurs!
+appendWordDescriptionToHere said:
+   ``I am a tail-recursive-function.
+     My function-type is (* WordList[address, the number of words] -- *).
+     `defineRecursiveFunction' and `defineFunction' call me.
+     The following word is undefined.
+     I will print the rest of the WordList and call debuger.''
+   --> "
+: String,appendWordDescriptionToHere,meetUndefinedWord 
+; defineConstString
+
+:" The length of the rest of the WordList is: "
+: String,appendWordDescriptionToHere,LengthOfTheRestOfTheWordList
+; defineConstString
+
+:" The rest of the WordList is: "
+: String,appendWordDescriptionToHere,TheRestOfTheWordList
+; defineConstString
+
+: appendWordDescriptionToHere
+  (* WordList[address, the number of words] -- *)
+  duplicate zero? if
+    twoDrop Exit
+  then
+  tailAndHeadOfWordList
+    twoDuplicate String,KeyWord,if equalString? if
+      twoDrop
+      literal false?branch appendNumberToHere
+      Here fetch xx|swap|x
+      duplicate appendNumberToHere
+      appendWordDescriptionToHere Exit
+    then
+    twoDuplicate String,KeyWord,then equalString? if
+      twoDrop
+      x|swap|xx over swap subSave
+      appendWordDescriptionToHere Exit
+    then
+    twoDuplicate stringDenoteNumber? if
+      number drop appendNumberToHere
+      appendWordDescriptionToHere Exit
+    then
+    twoDuplicate
+    find duplicate notZero? if
+      wordLinkToWordExplainer appendNumberToHere
+      twoDrop (* drop the string[address, length], which is for debuger *)
+      appendWordDescriptionToHere      
+      Exit
+    then
+    drop (* drop the Zero *)
+  String,appendWordDescriptionToHere,meetUndefinedWord printString 
+  printString cr
+  String,appendWordDescriptionToHere,LengthOfTheRestOfTheWordList
+  printString duplicate writeDecNumber cr
+  String,appendWordDescriptionToHere,TheRestOfTheWordList printString cr 
+  printWordList
+  debuger
+  Exit
+; defineRecursiveFunction
+
+
+: defineFunction
+  (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    xx|swap|x
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+
+: defineRecursiveFunction
+  (* wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForFunction
+    setTheSizeOfFunctionBody
+    addNewWordToDictionary
+    FunctionBodyExplainer appendNumberToHere
+    appendWordDescriptionToHere
+    Exit
+; defineFunction
+HexBase Base save
+0_ffff_ffff_0000_0000 : TypeMaskOfSemanticForMachine ; defineConst
+  0000_0000_ffff_ffff : TypeMaskOfSemanticForHuman   ; defineConst
+DecBase Base save
+
+(* <fixnum> must be Zero *)
+0 : <fixnum> ; defineConst
+1 : <bool>   ; defineConst
+2 : <type>   ; defineConst
+3 : <char>   ; defineConst
+4 : <symbol> ; defineConst
+5 : <substring> ; defineConst
+6 : <null>   ; defineConst
+
+0 : Null ; defineConst
+
+
+: <fixnum-like>? (* type -- True or False *)
+    TypeMaskOfSemanticForMachine bitwiseAnd
+    <fixnum> ==
+    Exit
+; defineFunction
+
+: True-Bool  True  <bool> Exit ; defineFunction
+: False-Bool False <bool> Exit ; defineFunction
+
+
+HexBase Base save
+1_0000_0000 : <pair>   ; defineConst
+1_0000_0001 : <string> ; defineConst
+DecBase Base save
+
+: <pair-like>? (* type -- True or False *)
+    TypeMaskOfSemanticForMachine bitwiseAnd
+    <pair> ==
+    Exit
+; defineFunction
+
+: <not-pair-like>? (* type -- True or False *)
+    TypeMaskOfSemanticForMachine bitwiseAnd
+    <pair> =/=
+    Exit
+; defineFunction
+
+
+:" <fixnum>" : String,<fixnum> ; defineConstString
+:" <bool>"   : String,<bool>   ; defineConstString
+:" <type>"   : String,<type>   ; defineConstString
+:" <char>"   : String,<char>   ; defineConstString
+:" <symbol>" : String,<symbol> ; defineConstString
+:" <pair>"   : String,<pair>   ; defineConstString
+:" <string>" : String,<string> ; defineConstString
+:" <substring>" : String,<substring> ; defineConstString
+:" <null>" : String,<null> ; defineConstString
+:" <unknow>" : String,<unknow> ; defineConstString
+
+: printTypeTag (* type-tag -- *)
+  duplicate <fixnum> == if String,<fixnum> printString drop Exit then 
+  duplicate <bool>   == if String,<bool>   printString drop Exit then 
+  duplicate <type>   == if String,<type>   printString drop Exit then 
+  duplicate <char>   == if String,<char>   printString drop Exit then 
+  duplicate <symbol> == if String,<symbol> printString drop Exit then 
+  duplicate <pair>   == if String,<pair>   printString drop Exit then 
+  duplicate <string> == if String,<string> printString drop Exit then 
+  duplicate <substring> == if String,<substring> printString drop Exit then 
+  duplicate <null> == if String,<null> printString drop Exit then 
+  String,<unknow> printString drop Exit 
+; defineFunction
+(*
+ * a word in the dictionary [unit : CellWidth = 8 bytes]
+ *   ||  1 : name-string-header-which-contains-the-length-of-name-string  ||
+ *   ||  m : name-string  ||
+ *   ||  1 : SizeOfFunctionBody ||
+ *   ||  1 : identification  ||
+ *   ||  1 : link  ||
+ *   ||  1 : type  ||
+ *   ||  1 : address-of-name-string-header  ||
+ *   ||  1 : address-of-explainer  ||
+ *   ||  n : body  ||
+ * where
+ *   ||  1 : type  ||
+ * ==
+ *   | type-bit-63 | ... | type-bit-1 | type-bit-0 |
+ * type-bit-0 is for HiddenWord
+ * type-bit-1 is for VariableOfTypedValue [DynamicVar]
+ *)
+
+: lastWordInTheDictionary? (* word[address of link] -- True or False *)
+    zero? Exit
+; defineFunction
+
+: nextWordInTheDictionary
+  (* word[address of link] -- next-word[address of link] *)
+    fetch Exit
+; defineFunction
+
+: fetchWordType (* word[address of link] -- WordType *)
+    add8 fetch
+    Exit
+; defineFunction
+
+: saveWordType (* word[address of link], WordType -- *)
+    swap add8 save
+    Exit
+; defineFunction
+
+
+0 : offsetForHiddenWord          ; defineConst
+1 : offsetForDynamicVariableWord ; defineConst
+
+: dynamicVariableWord? (* word[address of link] -- True or False *)
+    fetchWordType offsetForDynamicVariableWord fetchBit one?
+    Exit
+; defineFunction
+StringHeap1 : Variable,StringHeap,from ; defineVar
+StringHeap2 : Variable,StringHeap,to   ; defineVar
+
+StringHeap1 : CurrFreeStringAddress,from ; defineVar
+StringHeap2 : CurrFreeStringAddress,to   ; defineVar
+
+(* 
+ * little experiment:
+ *   HexBase Base save 
+ *     10_10_00_00 fetchArgumtStackPointer 
+ *     duplicate
+ *       1 swap saveByte 
+ *     duplicate
+ *       1 swap add1 saveByte 
+ *     fetch .hex .hex
+ *   DecBase Base save 
+ *)
+
+: fetchFourBytes (* address -- value *)
+  Zero fetchArgumtStackPointer
+  x|over|xx swap
+  Four copyByteString 
+  swap drop
+  Exit
+; defineFunction
+
+: saveFourBytes (* value, address -- *)
+  swap fetchArgumtStackPointer 
+  x|over|xx  
+  Four copyByteString
+  twoDrop 
+  Exit
+; defineFunction
+
+(* 
+ * test:
+ *   HexBase Base save 
+ *    10__10_10_00_00 fetchArgumtStackPointer 
+ *    duplicate
+ *      1 swap saveByte 
+ *    duplicate
+ *      1 swap add1 saveByte 
+ *    fetchFourBytes .hex .hex
+ *    10__10_10_00_00 fetchArgumtStackPointer 
+ *    duplicate
+ *      22_22_22_22 swap saveFourBytes
+ *    fetchFourBytes .hex .hex
+ *   DecBase Base save 
+ *)
+
+: getLengthOfString (* string[address] -- length *)
+  sub4 fetchFourBytes
+  Exit
+; defineFunction
+
+: stringIn?StringHeap,from (* string[address] -- True or False *)
+  Variable,StringHeap,from fetch
+  over over
+  SizeOfStringHeap +  <
+  xx|swap|x  >=
+  bitwiseAnd
+  Exit
+; defineFunction
+
+: stringIn?StringHeap,to (* string[address] -- True or False *)
+  Variable,StringHeap,to fetch
+  over over
+  SizeOfStringHeap +  <
+  xx|swap|x  >=
+  bitwiseAnd
+  Exit
+; defineFunction
+
+: withLength,copyByteString 
+  (* source address, destination address, length -- *)
+  duplicate x|over|xx saveFourBytes
+  swap add4 swap
+  copyByteString
+  Exit
+; defineFunction
+
+: try,copy-substring,from->to
+  (* [address, <substring>] -- [address, <substring>] *)
+  (* 
+   * duplicate <substring> =/= if 
+   *   Exit    
+   * then
+   *)
+  over duplicate
+  stringIn?StringHeap,to if
+    drop Exit
+  then
+  CurrFreeStringAddress,to fetch
+  over getLengthOfString
+  withLength,copyByteString
+  (* set return value *)
+  CurrFreeStringAddress,to fetch add4
+  |123->321|
+  (* update CurrFreeStringAddress,to *)  
+  getLengthOfString add4
+  CurrFreeStringAddress,to addSave   
+  Exit
+; defineFunction
+
+(* test: *)
+(* 
+ * CurrFreeStringAddress,to fetch
+ *   s" kkk " twoDuplicate printString (\* kkk *\)
+ *   drop <substring>
+ *   try,copy-substring,from->to 
+ *   twoDrop
+ * add4 duplicate
+ * getLengthOfString
+ * printString (\* kkk *\)
+ *)
+
+
+: try,copy-substring,from->to,forCar
+  (* [address, <pair-like>] -- [address, <pair-like>] *)
+  over fetchTwo (* this line is as car *)
+  duplicate <substring> =/= if 
+    twoDrop (* drop car *)
+    Exit    
+  then
+  try,copy-substring,from->to
+  x|over|xxx saveTwo (* this line is as set-car! *)
+  Exit
+; defineFunction
+
+: try,copy-substring,from->to,forCdr
+  (* [address, <pair-like>] -- [address, <pair-like>] *)
+  over CarBytesSize + fetchTwo (* this line is as cdr *)
+  duplicate <substring> =/= if 
+    twoDrop (* drop cdr *)
+    Exit
+  then
+  try,copy-substring,from->to
+  x|over|xxx CarBytesSize + saveTwo (* this line is as set-cdr! *)
+  Exit
+; defineFunction
+
+
+(* 
+ * [* s" kkk" drop <substring>
+ *    s" ppp" drop <substring> *]
+ * 
+ * twoDuplicate
+ *   car printTypeTag cr (\* <substring> *\)
+ *   duplicate getLengthOfString
+ *   printString cr (\* kkk *\)
+ * twoDuplicate
+ *   cdr printTypeTag cr (\* <substring> *\)
+ *   duplicate getLengthOfString
+ *   printString cr (\* ppp *\)
+ * 
+ * twoDuplicate
+ *   car drop .hex cr (\* >< *\)
+ * twoDuplicate
+ *   cdr drop .hex cr (\* >< *\)
+ * 
+ * twoDuplicate
+ *   try,copy-substring,from->to,forCar
+ *   try,copy-substring,from->to,forCdr
+ * 
+ * twoDuplicate
+ *   car printTypeTag cr (\* <substring> *\)
+ *   duplicate getLengthOfString
+ *   printString cr (\* kkk *\)
+ * twoDuplicate
+ *   cdr printTypeTag cr (\* <substring> *\)
+ *   duplicate getLengthOfString
+ *   printString cr (\* ppp *\)
+ * 
+ * (\* the two hex numbers must be different *\)
+ * twoDuplicate
+ *   car drop .hex cr (\* >< *\)
+ * twoDuplicate
+ *   cdr drop .hex cr (\* >< *\)
+ * 
+ * twoDrop
+ *)
+: readNonStringEndingChar (* -- FirstNonBlankChar or Zero *)
+  readChar
+  duplicate '"' == if
+    drop Zero
+  then Exit
+; defineFunction
+
+: help,readString,loop (* begin-address -- end-address *)
+  readNonStringEndingChar
+  duplicate zero? if 
+    drop Exit
+  then
+  over saveByte
+  add1
+  help,readString,loop
+  Exit
+; defineRecursiveFunction
+
+: readString (* -- string[address, length] *)
+  CurrFreeStringAddress,from fetch add4
+  duplicate (* leave begin-address *)
+    help,readString,loop  
+  duplicate (* leave end-address *)
+    CurrFreeStringAddress,from save
+  over -
+  duplicate (* return: length *)
+  x|over|xx (* return: address *)
+  sub4 saveFourBytes
+  Exit
+; defineFunction
+
+: s" (* -- string[address, length] *)
+  readString Exit
+; defineFunction
+
+(* test: *)
+(* s" 123 kkk aaa !!! @@@ ###" printString *)
+(* the construction of pair : [unit : byte]
+ * clr:
+ *     ||  1 : color     ||
+ * car:
+ *     ||  8 : type tag  ||
+ *     ||  8 : value     ||
+ * cdr:
+ *     ||  8 : type tag  ||
+ *     ||  8 : value     ||
+ *)
+
+(* the following constants are defined in assembler:
+ * ConsBytesSize == 33
+ * ClrBytesSize  ==  1
+ * CarBytesSize  == 16
+ * CdrBytesSize  == 16
+ *)
+
+:" clr said:
+   ``My function-type is (* [address, <pair-like>] -- color-byte *).
+     But the type of the TypedValue I received is the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,clr,typeError ; defineConstString
+: clr (* [address, <pair-like>] -- color-byte *)
+  duplicate <not-pair-like>? if
+    String,clr,typeError printString  
+    duplicate printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag *)
+  sub1 fetchByte Exit
+; defineFunction
+
+
+:" car said:
+   ``My function-type is (* [address, <pair-like>] -- [value, type] *).
+     But the type of the TypedValue I received is the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,car,typeError ; defineConstString
+: car (* [address, <pair-like>] -- [value, type] *)
+  duplicate <not-pair-like>? if
+    String,car,typeError printString  
+    duplicate printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag *)
+  fetchTwo Exit
+; defineFunction
+
+
+:" cdr said:
+   ``My function-type is (* [address, <pair-like>] -- [value, type] *).
+     But the type of the TypedValue I received is the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,cdr,typeError ; defineConstString
+: cdr (* [address, <pair-like>] -- [value, type] *)
+  duplicate <not-pair-like>? if
+    String,cdr,typeError printString  
+    duplicate printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag *)
+  CarBytesSize + fetchTwo Exit
+; defineFunction
+0 : White ; defineConst
+1 : Black ; defineConst
+
+(* set three offsets used by fetchByte, setBit, clearBit *)
+0 : VariableColorOffsetForFinding  ; defineVar
+1 : VariableColorOffsetForMarking  ; defineVar
+2 : VariableColorOffsetForClearing ; defineVar
+: ColorOffsetForFinding  VariableColorOffsetForFinding  fetch Exit ; defineFunction
+: ColorOffsetForMarking  VariableColorOffsetForMarking  fetch Exit ; defineFunction
+: ColorOffsetForClearing VariableColorOffsetForClearing fetch Exit ; defineFunction
+
+:" set-clr! said:
+   ``My function-type is (* [address, <pair-like>], color-byte -- [address, <pair-like>] *).
+     But there must be something wrong with the arguments that I received.
+     If I view the second argument as a type-tag,
+     it will be as the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,set-clr!,typeError ; defineConstString
+: set-clr! (* [address, <pair-like>], color-byte -- [address, <pair-like>] *)
+  over duplicate  <not-pair-like>? if
+    String,set-clr!,typeError printString  
+    printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag *)
+  x|over|xx sub1 saveByte Exit
+; defineFunction
+: whiteColorForMarking? (* color-byte -- True or False *)
+  ColorOffsetForMarking fetchBit White == Exit
+; defineFunction
+
+: blackColorForMarking? (* color-byte -- True or False *)
+  ColorOffsetForMarking fetchBit Black == Exit
+; defineFunction
+
+: black-<pair>? (* [address, <pair-like>] -- True or False *)
+  clr blackColorForMarking? Exit
+; defineFunction
+
+
+(* the following function is the only function who pushGreyPairStack
+ * and this function is called by one,grey->black and so on *)
+:" try,white->grey said:
+   ``My function-type is ( [address, <pair-like>] -- [address, <pair-like>] ).
+     But the type of the TypedValue I received is the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,try,white->grey,typeError ; defineConstString
+: try,white->grey (* [address, <pair-like>] -- [address, <pair-like>] *)
+  duplicate <not-pair-like>? if
+    String,try,white->grey,typeError printString  
+    duplicate printTypeTag cr
+    debuger
+    Exit  
+  then
+  twoDuplicate clr
+  duplicate
+  whiteColorForMarking? if
+    ColorOffsetForMarking setBit set-clr!
+
+    try,copy-substring,from->to,forCar
+    try,copy-substring,from->to,forCdr
+    over pushGreyPairStack
+    Exit
+  then
+  drop (* drop the color-byte *) Exit  
+; defineFunction
+
+
+: one,try,grey->black (* -- *)
+  emptyGreyPairStack? if
+    Exit
+  then
+  popGreyPairStack duplicate
+    fetchTwo duplicate <pair-like>? if
+      try,white->grey
+    then twoDrop
+    CarBytesSize +
+    fetchTwo duplicate <pair-like>? if
+      try,white->grey
+    then twoDrop
+  Exit
+; defineFunction
+
+
+(* the following is a help-function of all,grey->black
+ * the GreyPairStack must not be empty when it is called *)
+
+: one,grey->black (* -- *)
+  popGreyPairStack duplicate
+    fetchTwo duplicate <pair-like>? if
+      try,white->grey
+    then twoDrop
+    CarBytesSize +
+    fetchTwo duplicate <pair-like>? if
+      try,white->grey
+    then twoDrop
+  Exit
+; defineFunction
+
+: all,grey->black (* -- *)
+  emptyGreyPairStack? if
+    Exit
+  then
+  one,grey->black
+  all,grey->black Exit
+; defineRecursiveFunction
+: set!
+  (* VarForTypedValue[address], [value, type] -- VarForTypedValue[address] *)
+  duplicate <pair-like>? if
+    all,grey->black (* to be incremental-gc is to call this function here *)
+    try,white->grey
+  then
+  x|over|xx saveTwo
+  Exit
+; defineFunction
+
+: help,set-car!&set-cdr!,for-black-<pair>
+  (* [valus, type] -- [valus, type] *)
+  duplicate <pair-like>? if
+    all,grey->black (* to be incremental-gc is to call this function here *)
+    try,white->grey
+  then
+  Exit
+; defineFunction
+
+:" set-car! said:
+   ``My function-type is (* [address, <pair-like>], [valus, type] -- [address, <pair-like>] *).
+     But there must be something wrong with the arguments that I received.
+     If I view the third argument as a type-tag,
+     it will be as the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,set-car!,typeError ; defineConstString
+
+: set-car!
+  (* [address, <pair-like>], [valus, type] -- [address, <pair-like>] *)
+  x|over|xx duplicate  <not-pair-like>? if
+    String,set-car!,typeError printString  
+    printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag overed *)
+  xx|over|xx black-<pair>? if
+    help,set-car!&set-cdr!,for-black-<pair>
+  then
+  x|over|xxx saveTwo
+  Exit
+; defineFunction
+
+
+:" set-cdr! said:
+   ``My function-type is (* [address, <pair-like>], [valus, type] -- [address, <pair-like>] *).
+     But there must be something wrong with the arguments that I received.
+     If I view the third argument as a type-tag,
+     it will be as the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,set-cdr!,typeError ; defineConstString
+
+: set-cdr!
+  (* [address, <pair-like>], [valus, type] -- [address, <pair-like>] *)
+  x|over|xx duplicate  <not-pair-like>? if
+    String,set-cdr!,typeError printString  
+    printTypeTag cr
+    debuger Exit
+  then
+  drop (* drop the type-tag overed *)
+  xx|over|xx black-<pair>? if
+    help,set-car!&set-cdr!,for-black-<pair>
+  then
+  x|over|xxx CarBytesSize + saveTwo
+  Exit
+; defineFunction
+(* recall
+ * a word in the dictionary [unit : CellWidth = 8 bytes]
+ *   ||  1 : name-string-header-which-contains-the-length-of-name-string  ||
+ *   ||  m : name-string  ||
+ *   ||  1 : SizeOfFunctionBody  ||
+ *   ||  1 : identification  ||
+ *   ||  1 : link  ||
+ *   ||  1 : type  ||
+ *   ||  1 : address-of-name-string-header  ||
+ *   ||  1 : address-of-explainer  ||
+ *   ||  n : body  ||
+ * where
+ *   ||  1 : type  ||
+ * ==
+ *   | type-bit-63 | ... | type-bit-1 | type-bit-0 |
+ * type-bit-0 is for HiddenWord
+ * type-bit-1 is for VariableOfTypedValue
+ *)
+
+: createWordHeaderForTypedValue
+  (* string[address, length] -- word[address of link] *)
+    Here fetch xx|swap|x (* address-of-name-string-header *)
+    appendStringToHere
+    Here fetch appendNumberToHere (* identification *)
+    Here fetch (* leave the word[link] *)
+    Zero appendNumberToHere (* link *)
+    Two appendNumberToHere  (* type *)
+    swap
+    appendNumberToHere (* address-of-name-string-header *)
+    Exit
+; defineFunction
+
+
+: define
+  (* [value, type], wordList[address, the number of words] -- *)
+    tailAndHeadOfWordList
+    createWordHeaderForTypedValue
+    VarExplainer appendNumberToHere
+    xx|swap|x twoDrop xx|swap|x  (* leave wordHeader *)
+    duplicate <pair-like>? if
+      try,white->grey
+    then
+    appendNumberToHere appendNumberToHere
+    addNewWordToDictionary
+    Exit
+; defineFunction
+(* the following functions are helping cons *)
+
+: clearColorBitOfPairForClearing (* pair[address] -- pair[address] *)
+    <pair>
+    twoDuplicate clr
+    ColorOffsetForClearing clearBit
+    set-clr!
+    drop
+    Exit
+; defineFunction
+
+: whiteColorForFinding? (* color-byte -- True or False *)
+    ColorOffsetForFinding fetchBit White ==
+    Exit
+; defineFunction
+
+: findNextFreePairConstruction
+  (* pair[address] -- Zero or NextFreePairConstruction[address] *)
+    duplicate LastPairConstruction == if
+      drop Zero Exit
+    then
+    ConsBytesSize +
+    clearColorBitOfPairForClearing
+    duplicate <pair> clr
+    whiteColorForFinding? if
+      Exit
+    then
+    findNextFreePairConstruction
+    Exit
+; defineRecursiveFunction
+
+
+
+(* 三阶置换群中的两个三周期循环置换之中的一个
+ * VariableColorOffsetForFinding   -->  VariableColorOffsetForClearing
+ * VariableColorOffsetForMarking   -->  VariableColorOffsetForFinding
+ * VariableColorOffsetForClearing  -->  VariableColorOffsetForMarking
+ *)
+: resetColorOffsets (* -- *)
+    VariableColorOffsetForFinding  fetch
+    VariableColorOffsetForMarking  fetch
+    VariableColorOffsetForClearing fetch
+    VariableColorOffsetForMarking  save
+    VariableColorOffsetForFinding  save
+    VariableColorOffsetForClearing save
+    Exit
+; defineFunction
+
+
+
+: dynamicVariableWordFor<pair-like>? (* word[address of link] -- True or False *)
+    duplicate dynamicVariableWord? if
+    wordLinkToWordExplainer execute fetchTwo
+    swap drop
+    <pair-like>?
+    Exit
+    then
+    drop False Exit
+; defineFunction
+
+: help,pushAllRootNodeIntoGreyPairStack (* word[address of link] -- *)
+    duplicate lastWordInTheDictionary? if
+      drop Exit
+    then
+    duplicate dynamicVariableWordFor<pair-like>? if
+    duplicate wordLinkToWordExplainer execute fetchTwo
+    try,white->grey twoDrop
+    then
+    nextWordInTheDictionary
+    help,pushAllRootNodeIntoGreyPairStack
+    Exit
+; defineRecursiveFunction
+
+: pushAllRootNodeIntoGreyPairStack (* -- *)
+    FirstWordInDictionary fetch
+    help,pushAllRootNodeIntoGreyPairStack
+    Exit
+; defineFunction
+
+
+
+(* 在我看来下面这个函数是``非内蕴的''
+ * 因而是不好的函数
+ * 但是无奈这是我所使用的这种动态类型系统的弱点之一
+ *)
+
+(* 满足下面三个条件的Value被我认为是AddressOfPair
+ * [下面的等式和不等式 是用中缀表达式表示的]
+ * 1. Value >= FirstPairConstruction
+ * 2. Value <= LastPairConstruction
+ * 3. [Value - FirstPairConstruction] mod ConsBytesSize == 0
+ *)
+
+: addressOfPair? (* value -- Ture or False *)
+    duplicate FirstPairConstruction < if
+      drop False Exit
+    then
+    duplicate LastPairConstruction > if
+      drop False Exit
+    then
+    FirstPairConstruction - ConsBytesSize mod zero?
+    Exit
+; defineFunction
+
+
+
+: help,allPairsInArgumtStack,try,white->grey
+  (* address of a Cell in ArgumtStack -- *)
+    duplicate ArgumtStackTop > if
+      drop Exit
+    then
+    duplicate fetch addressOfPair? if
+      duplicate fetch
+      <pair> try,white->grey
+      twoDrop
+    then
+    CellWidth +
+    help,allPairsInArgumtStack,try,white->grey
+    Exit
+; defineRecursiveFunction
+
+(* tryToDarkenAllWhirtPairsInArgumtStack *)
+: allPairsInArgumtStack,try,white->grey (* -- *)
+    fetchArgumtStackPointer
+    help,allPairsInArgumtStack,try,white->grey
+    Exit
+; defineFunction
+
+
+
+
+: resetVariablesAboutString (* -- *)
+  CurrFreeStringAddress,to fetch CurrFreeStringAddress,from save
+  Variable,StringHeap,from fetch CurrFreeStringAddress,to   save
+  Variable,StringHeap,to   fetch Variable,StringHeap,from   save
+  CurrFreeStringAddress,to fetch Variable,StringHeap,to     save
+  Exit
+; defineFunction
+
+
+
+:" cons said: ``Memory for cons is used up! No value is returned!''"
+: String,cons,MemoryIsUsedUp ; defineConstString
+
+: cons (* -- [address, <pair>] *)
+    CurrFreePairConstruction fetch <pair> (* leave the return <value> *)
+    CurrFreePairConstruction fetch findNextFreePairConstruction
+    duplicate notZero? (* Zero denotes fail to find *) if
+      CurrFreePairConstruction save
+      Exit
+    then drop (* drop the Zero, which denotes fail to find, need gc *)
+    allPairsInArgumtStack,try,white->grey
+    all,grey->black
+    resetColorOffsets resetVariablesAboutString (* note the timing to reset *)  
+    pushAllRootNodeIntoGreyPairStack
+    InFrontOfTheFirstPairConstruction findNextFreePairConstruction
+    duplicate notZero? if
+      CurrFreePairConstruction save
+      'space' ':' 'g' 'c' ':' 'space'
+       writeChar writeChar writeChar writeChar writeChar writeChar
+      Exit
+    then drop
+    (* if after gc still fail to find, we know the memory is used up *)
+    twoDrop
+    String,cons,MemoryIsUsedUp printString cr
+    debuger
+    Exit
+; defineFunction
+: [* (* -- [address, <pair>] *)
+  cons Exit
+; defineFunction
+
+: *] (* [address, <pair>], [value, type of car], [value of cdr, type] --
+        [address, <pair>] *)
+  xx|swap|xxxx
+  xx|swap|xx
+  set-cdr!
+  xx|swap|xx
+  set-car!
+  Exit
+; defineFunction
+: read-string (* -- [address, <string>] *)
+  cons drop (* drop <pair> *) <string>
+  s" drop (* drop length *) <substring>
+  set-cdr!
+  Null <null> set-car!
+  Exit
+; defineFunction
+
+: ::" (* -- [address, <string>] *)
+  read-string Exit
+; defineFunction
+
+
+:" write-string said:
+   ``My function-type is ( [address, <string>] -- ).
+     But the type of the TypedValue I received is the following,
+     I will not touch it and call debuger.''
+   --> "
+: String,write-string,typeError ; defineConstString
+
+: write-string (* [address, <string>] -- *)
+  duplicate <string> =/= if
+    String,write-string,typeError printString  
+    duplicate printTypeTag cr
+    debuger Exit
+  then
+  cdr drop (* drop <substring> *)
+  duplicate getLengthOfString printString
+  Exit
+; defineFunction
+(* for test *)
+: printTypeOfIt (* type -- *)
+  printTypeTag ':' writeChar writeSpace Exit
+; defineFunction
+
+(* test: gc *)
+: ask-for-lots-of-cons (* n -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1
+    [* literal 555 <fixnum>
+       literal 666 <fixnum> *]
+    twoDrop
+    ask-for-lots-of-cons
+    Exit
+; defineRecursiveFunction
+
+: ask-for-lots-of-cons,leave-them-on-the-ArgumtStack (* n -- *)
+    duplicate zero? if drop Exit
+    then
+    sub1
+    [* literal 555 <fixnum>
+       literal 666 <fixnum> *]
+    x|swap|xx
+    ask-for-lots-of-cons,leave-them-on-the-ArgumtStack
+    Exit
+; defineRecursiveFunction
+(* a SymbolEntry [unit : byte]
+ * ========================
+ *   ||  1 : SymbolLength  ||
+ * ------------------------
+ *   || 56 : SymbolString  ||
+ * ========================
+ * where SymbolMaxLength = 56
+ *)
+
+: index->address (* index -- address *)
+    SymbolEntryBytesSize *
+    FirstSymbolEntry +
+    Exit
+; defineFunction
+
+: index-hashback->string
+  (* index -- string[address, length] *)
+    index->address
+    duplicate add1 swap
+    fetchByte
+    Exit
+; defineFunction
+
+
+: help,string-hash->index,sum-up
+  (* sum-up , string[address, length] -- sum-up *)
+    duplicate zero? if
+      twoDrop Exit
+    then
+    tailAndHeadOfString
+    over shiftLeft
+    x|swap|xxx  +  xx|swap|x
+    help,string-hash->index,sum-up
+    Exit
+; defineRecursiveFunction
+
+: help,string-hash->index,find-old-or-creat-new
+  (* string[address, length], index -- index *)
+    xx|tuck|x index-hashback->string
+    duplicate zero? if  (* creat-new *)
+      drop
+      over over sub1 saveByte
+      swap copyByteString
+      Exit
+    then
+    xx|over|xx equalString? if (* found old *)
+      twoDrop Exit
+    then
+    x|swap|xx (* to get next-index *)
+    duplicate index->address LastSymbolEntry == if
+      drop
+      Zero
+      help,string-hash->index,find-old-or-creat-new
+      Exit
+    then
+    add1
+    help,string-hash->index,find-old-or-creat-new
+    Exit
+; defineRecursiveFunction
+
+: string-hash->index
+  (* string[address, length] -- index *)
+    twoDuplicate
+      Zero xx|swap|x
+        duplicate SymbolMaxLength > if
+          drop SymbolMaxLength
+        then
+      help,string-hash->index,sum-up
+      NumberOfSymbolEntrys mod
+    help,string-hash->index,find-old-or-creat-new
+    Exit
+; defineFunction
+
+
+
+
+
+: ok (* -- *)
+    'y' writeChar
+    'e' writeChar
+    's' writeChar
+    'space' writeChar
+    Exit
+; defineFunction

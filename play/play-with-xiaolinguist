@@ -1,0 +1,3 @@
+#!/bin/bash 
+export xiaolinguist_play_directory=/home/xyh/xiaolinguist/play
+cat ${xiaolinguist_play_directory}/xiaolinguist.xl - ${xiaolinguist_play_directory}/byebye.xl | ${xiaolinguist_play_directory}/xiaolinguist
